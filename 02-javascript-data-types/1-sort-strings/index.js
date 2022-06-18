@@ -8,14 +8,14 @@ export function sortStrings(arr, param = "asc") {
   let arrSort = [...arr];
   if (param === "asc") {
     arrSort.sort((a, b) => {
-      return a.localeCompare(b, "kf", { caseFirst: "upper" });
+      return a.localeCompare(b, ["ru", "en-US"], { caseFirst: "upper" });
     });
     return arrSort;
   }
-  
+
   if (param === "desc") {
     arrSort.sort((a, b) => {
-      return b.localeCompare(a, "kf", { caseFirst: "lower" });
+      return b.localeCompare(a, ["ru", "en-US"], { caseFirst: "lower" });
     });
     return arrSort;
   }
