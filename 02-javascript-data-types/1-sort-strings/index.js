@@ -12,6 +12,7 @@ export function sortStrings(arr, param = "asc") {
     });
     return arrSort;
   }
+  
   if (param === "desc") {
     arrSort.sort((a, b) => {
       return b.localeCompare(a, "kf", { caseFirst: "lower" });
