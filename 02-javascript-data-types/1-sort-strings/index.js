@@ -5,18 +5,11 @@
  * @returns {string[]}
  */
 export function sortStrings(arr, param = "asc") {
-  let arrSort = [...arr];
-  if (param === "asc") {
-    arrSort.sort((a, b) => {
+  const arrSort = [...arr];
+  return arrSort.sort((a, b) => {
+    if (param === "asc") {
       return a.localeCompare(b, ["ru", "en-US"], { caseFirst: "upper" });
-    });
-    return arrSort;
-  }
-
-  if (param === "desc") {
-    arrSort.sort((a, b) => {
-      return b.localeCompare(a, ["ru", "en-US"], { caseFirst: "lower" });
-    });
-    return arrSort;
-  }
+    }
+    return b.localeCompare(a, ["ru", "en-US"], { caseFirst: "lower" });
+  });
 }

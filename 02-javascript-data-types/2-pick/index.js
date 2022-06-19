@@ -7,10 +7,8 @@
 export const pick = (obj, ...fields) => {
   return Object.fromEntries(
     Object.entries(obj).filter(([key, value]) => {
-      for (let k of fields) {
-        if (key === k) {
-          return [key, value];
-        }
+      if (fields.includes(key)) {
+        return [key, value];
       }
     })
   );
