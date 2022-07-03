@@ -1,6 +1,7 @@
 export default class ColumnChart {
+  chartHeight = 50
   constructor(date) {
-    this.chartHeight();
+    
     if (!date) {
       return this.defaultLoad();
     }
@@ -9,22 +10,21 @@ export default class ColumnChart {
     this.update(this.data);
     this.initEventListeners();
   }
-  default({ data = [], value, label = "Total orders", link = "#", ...obj }) {
+  default({
+    data = [],
+    value = 0,
+    label = "",
+    link = "",
+    formatHeading = (data) => data,
+  } = {}) {
     this.data = data;
-    this.value = value;
-    if (Object.keys(obj).includes("formatHeading")) {
-      this.value = obj.formatHeading(value);
-    }
+    this.value = formatHeading(value);
     this.label = label;
     this.link = link;
   }
 
-  chartHeight() {
-    this.chartHeight = 50;
-  }
-
-  blockRender() {
-    return `<div class="column-chart" style="--chart-height: ${this.chartHeight}">
+  get blockRender() {
+    return `<div class="column-chart column-chart__chart" style="--chart-height: ${this.chartHeight}">
       <div class="column-chart__title">
       ${this.label}
       <a href="${this.link}" class="column-chart__link">View all</a>
@@ -37,7 +37,7 @@ export default class ColumnChart {
   }
   render() {
     const element = document.createElement("div");
-    element.innerHTML = this.blockRender();
+    element.innerHTML = this.blockRender;
     this.allElement = element;
     this.element = element.firstElementChild;
   }
