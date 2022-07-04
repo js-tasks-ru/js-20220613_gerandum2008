@@ -59,10 +59,11 @@ ${this.headerConfig.map((item) => this.getHeaderRow(item)).join("")}
     this.element = element;
     this.subElements = this.getDataElement(element);
     this.sort(this.sorted)
-    this.subElements.header.addEventListener('click',(event)=>{
+    this.subElements.header.addEventListener('pointerdown',(event)=>{
       if(event.target.closest('span')){
-        const idData = event.target.closest('div').dataset.id
-        const orderData = event.target.closest('div').dataset.order
+        const eventDiv = event.target.closest('div')
+        const idData = eventDiv.dataset.id
+        const orderData = eventDiv.dataset.order
         if(orderData==='asc'){
           return this.sort({field:idData,order:'desc'})
         }
