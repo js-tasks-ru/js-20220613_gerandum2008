@@ -1,28 +1,28 @@
 class Tooltip {
-  static op;
+  static activTooltip;
   initialize() {
     document.body.addEventListener("pointerover", (event) => {
       if (event.target.dataset.tooltip != undefined) {
-        if (Tooltip.op) {
+        if (Tooltip.activTooltip) {
           this.remove();
         }
-        this.renderD(event.target.dataset.tooltip);
+        this.render(event.target.dataset.tooltip);
       }
     });
     document.body.addEventListener("pointerout", this.destroy());
   }
-  renderD(pip) {
-    const op = document.createElement("div");
-    op.classList.add("tooltip");
-    op.innerText = pip;
-    Tooltip.op = op;
-    document.body.append(Tooltip.op);
+  render(eventDiv) {
+    const divTooltip = document.createElement("div");
+    divTooltip.classList.add("tooltip");
+    divTooltip.innerText = eventDiv;
+    Tooltip.activTooltip = divTooltip;
+    document.body.append(Tooltip.activTooltip);
   }
   remove() {
     
-    if (Tooltip.op) {
-      Tooltip.op.remove();
-      Tooltip.op = null;
+    if (Tooltip.activTooltip) {
+      Tooltip.activTooltip.remove();
+      Tooltip.activTooltip = null;
     }
   }
   destroy() {
