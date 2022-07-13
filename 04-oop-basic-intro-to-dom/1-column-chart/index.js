@@ -1,16 +1,7 @@
 export default class ColumnChart {
-  chartHeight = 50
-  constructor(date) {
-    
-    if (!date) {
-      return this.defaultLoad();
-    }
-    this.default({ ...date });
-    this.render();
-    this.update(this.data);
-    this.initEventListeners();
-  }
-  default({
+  chartHeight = 50;
+  element
+  constructor({
     data = [],
     value = 0,
     label = "",
@@ -21,10 +12,11 @@ export default class ColumnChart {
     this.value = formatHeading(value);
     this.label = label;
     this.link = link;
+    this.render();
   }
 
   get blockRender() {
-    return `<div class="column-chart column-chart__chart" style="--chart-height: ${this.chartHeight}">
+    return `<div class="column-chart  column-chart_loading" style="--chart-height: ${this.chartHeight}">
       <div class="column-chart__title">
       ${this.label}
       <a href="${this.link}" class="column-chart__link">View all</a>
@@ -38,27 +30,21 @@ export default class ColumnChart {
   render() {
     const element = document.createElement("div");
     element.innerHTML = this.blockRender;
-    this.allElement = element;
     this.element = element.firstElementChild;
+    this.update(this.data)
   }
   update(data) {
     const block = this.element.querySelector(".column-chart__chart");
-    if (data.length === 0) {
-      return (block.innerHTML = `<img src='charts-skeleton.svg'>`);
+    if(data.length){
+      this.element.classList.remove('column-chart_loading')
     }
-    for (let key of data) {
-      block.innerHTML += `<div style="--value: ${Math.floor(
-        key * (this.chartHeight / Math.max(...data))
-      )}" data-tooltip="${((key / Math.max(...data)) * 100).toFixed(
+    block.innerHTML=(data.map(item=>{
+     return `<div style="--value: ${Math.floor(
+        item * (this.chartHeight / Math.max(...data))
+      )}" data-tooltip="${((item / Math.max(...data)) * 100).toFixed(
         0
-      )}%"></div>`;
-    }
-  }
-  defaultLoad() {
-    this.render();
-    this.allElement
-      .querySelector(".column-chart")
-      .classList.add("column-chart_loading");
+      )}%"></div>`
+    }).join(''))
   }
 
   initEventListeners() {

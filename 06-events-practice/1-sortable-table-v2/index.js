@@ -1,44 +1,64 @@
 export default class SortableTable {
-  constructor(headerConfig, { data = [], sorted = {} } = {}) {
+ element
+ subElement={}
+  constructor(
+    headerConfig = [],
+    {
+      data = [],
+      sorted = {
+        id: headerConfig.find((item) => item.sortable).id,
+        order: "asc",
+      },
+    } = {}
+  ) {
     this.headerConfig = headerConfig;
     this.data = data;
-    this.sorted = {...sorted};
-    this.isSortLocally;
+    this.sorted = sorted;
     this.render();
   }
-  getTable() {
+  getTable(data) {
     return `<div class="sortable-table">
               ${this.getTableHeader()}
-              ${this.getTableBody()}
+              ${this.getTableBody(data)}
           </div>`;
   }
   getTableHeader() {
     return `<div data-element="header" class="sortable-table__header sortable-table__row">
-${this.headerConfig.map((item) => this.getHeaderRow(item)).join("")}
-</div>`;
+    ${this.headerConfig.map((item) => this.getHeaderRow(item)).join("")}
+     </div>`;
   }
   getHeaderRow({ id, title, sortable }) {
-    return `<div class="sortable-table__cell" data-id="${id}" data-sortable="${sortable}">
+    const order = this.sorted.id === id ? this.sorted.order : "asc";
+
+    return `<div class="sortable-table__cell" data-id="${id}" data-sortable="${sortable}" data-order="${order}">
     <span>${title}</span>
-    <span data-element="arrow" class="sortable-table__sort-arrow">
-          <span class="sort-arrow"></span>
-        </span>
+    ${this.getHeaderSortingArrow(id)}
   </div>`;
   }
-  getTableBody() {
+  getHeaderSortingArrow(id) {
+    const isOrderExist = this.sorted.id === id ? this.sorted.order : "";
+
+    return isOrderExist
+      ? `<span data-element="arrow" class="sortable-table__sort-arrow">
+          <span class="sort-arrow"></span>
+        </span>`
+      : "";
+  }
+  getTableBody(data) {
     return `<div data-element="body" class="sortable-table__body">
-    ${this.getTableRows(this.data)}
+    ${this.getTableRows(data)}
     </div>`;
   }
-  getTableRows(data = []) {
+  getTableRows(data) {
     return data
       .map((item) => {
-        return `<a href="/products/${item.id}" class="sortable-table__row">
+        return `<div class="sortable-table__row">
   ${this.getTableRow(item)}
-  </a>`;
+  </div>`;
       })
       .join("");
   }
+
   getTableRow(item) {
     const cells = this.headerConfig.map(({ id, template }) => {
       return { id, template };
@@ -53,25 +73,20 @@ ${this.headerConfig.map((item) => this.getHeaderRow(item)).join("")}
       .join("");
   }
   render() {
+    const{id,order}=this.sorted
     const elem = document.createElement("div");
-    elem.innerHTML = this.getTable();
-    const element = elem.firstElementChild;
-    this.element = element;
-    this.subElements = this.getDataElement(element);
-    this.sort(this.sorted)
-    this.subElements.header.addEventListener('pointerdown',(event)=>{
-      if(event.target.closest('span')){
-        const eventDiv = event.target.closest('div')
-        const idData = eventDiv.dataset.id
-        const orderData = eventDiv.dataset.order
-        if(orderData==='asc'){
-          return this.sort({field:idData,order:'desc'})
-        }
-        return this.sort({field:idData,order:'asc'})
-      }
-    })
+    const sortData = this.sortData(id,order)
+    elem.innerHTML = this.getTable(sortData);
+    this.element = elem.firstElementChild;
+    this.subElements = this.getDataElement(this.element);
+
+    this.initEventListener();
   }
 
+  initEventListener(){
+    this.subElements.header.addEventListener("pointerdown", this.onSortClick)
+  }
+ 
   getDataElement(element) {
     const result = {};
     const elements = element.querySelectorAll("[data-element]");
@@ -81,54 +96,63 @@ ${this.headerConfig.map((item) => this.getHeaderRow(item)).join("")}
     }
     return result;
   }
-  sort({field='title', order='asc'}={}) {
-    const sortedData = this.sortData(field, order);
-    const allColumns = this.element.querySelectorAll(
-      ".sortable-table__cell[data-id]"
-    );
-    const currentColumn = this.element.querySelector(
-      `.sortable-table__cell[data-id="${field}"]`
-    );
+onSortClick = event=>{
+  
+    const column = event.target.closest('[data-sortable="true"]');
 
-    allColumns.forEach((column) => {
-      column.dataset.order = "";
-    });
+    const toggleOrder = order => {
+      const orders = {
+        asc: 'desc',
+        desc: 'asc',
+      };
 
-    currentColumn.dataset.order = order;
+      return orders[order];
+    };
 
-    this.subElements.body.innerHTML = this.getTableRows(sortedData);
-  }
+    if (column) {
+      const { id, order } = column.dataset;
+      const newOrder = toggleOrder(order); // undefined
+      const sortedData = this.sortData(id, newOrder);
+      const arrow = column.querySelector('.sortable-table__sort-arrow');
+
+      column.dataset.order = newOrder;
+
+      if (!arrow) {
+        column.append(this.subElements.arrow);
+      }
+
+      this.subElements.body.innerHTML = this.getTableRows(sortedData);
+    }
+  
+}
+  
 
   sortData(field, order) {
     const arr = [...this.data];
     const column = this.headerConfig.find((item) => item.id === field);
     const { sortType } = column;
-    const directions = {
-      asc: 1,
-      desc: -1,
-    };
-    const direction = directions[order];
-
+    const direction = order === 'asc'? 1:-1;
+    
     return arr.sort((a, b) => {
       switch (sortType) {
         case "number":
           return direction * (a[field] - b[field]);
         case "string":
-          return (direction) * a[field].localeCompare(b[field], ["ru", "en"]);
+          return direction * a[field].localeCompare(b[field], ["ru", "en"]);
+        case 'custom':
+          return direction * customString(a,b);
         default:
           return direction * (a[field] - b[field]);
       }
     });
   }
   remove() {
-    if (this.element) {
       this.element.remove();
-    }
   }
-
+  
   destroy() {
     this.remove();
-    this.element = null;
-    this.objDataElement = {};
+    // this.element = null; а нужно ли? тесты ругаются в решениях у вас тоже есть. тесты ругаются
+    this.subElement = {};
   }
 }
